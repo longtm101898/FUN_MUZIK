@@ -31,7 +31,7 @@ export function MusicContainer({
       oldIdx.current = idx;
       setPlayState(true);
     }
-  }, [idx, oldIdx.current]);
+  }, [idx, musicData, oldIdx]);
 
   useEffect(() => {
     if (playState) {

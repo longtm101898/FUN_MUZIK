@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { formatTime } from "@/utils/format";
 import { MusicProgressWrapper } from "./styled/MusicProgressStyled";
@@ -33,11 +33,8 @@ export function MusicProgress(props: IMusicProgress) {
     }
   }
 
-  useEffect(() => {
-    const progressCenter = progressCenterRef.current;
-    const progressBar = progressBarRef.current;
-    const progressCenterWidth = progressCenter?.getBoundingClientRect().width;
-    player.addEventListener("timeupdate", (e) => {
+  const onTimeUpdate = useCallback(
+    (progressBar: HTMLDivElement | null, progressCenterWidth?: number) => {
       if (progressCenterWidth) {
         if (Math.ceil(player.duration) !== audioDuration) {
           setAudioDuration(Math.ceil(player.duration));
@@ -61,8 +58,23 @@ export function MusicProgress(props: IMusicProgress) {
           );
         }
       }
-    });
-  }, [player]);
+    },
+    [audioDuration, player, props]
+  );
+
+  useEffect(() => {
+    const progressCenter = progressCenterRef.current;
+    const progressBar = progressBarRef.current;
+    const progressCenterWidth = progressCenter?.getBoundingClientRect().width;
+    player.addEventListener("timeupdate", () =>
+      onTimeUpdate(progressBar, progressCenterWidth)
+    );
+
+    return () =>
+      player.removeEventListener("timeupdate", () =>
+        onTimeUpdate(progressBar, progressCenterWidth)
+      );
+  }, [onTimeUpdate, player]);
 
   return (
     <MusicProgressWrapper className="music-progress">
